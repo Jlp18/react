@@ -248,13 +248,18 @@ export function startRequestCallbackTimer(): void {
   }
 }
 
-export function stopRequestCallbackTimer(didExpire: boolean): void {
+export function stopRequestCallbackTimer(
+  didExpire: boolean,
+  expirationTime: number,
+): void {
   if (enableUserTimingAPI) {
     if (supportsUserTiming) {
       isWaitingForCallback = false;
       const warning = didExpire ? 'React was blocked by main thread' : null;
       endMark(
-        '(Waiting for async callback...)',
+        `(Waiting for async callback... will force flush in ${
+          expirationTime
+        } ms)`,
         '(Waiting for async callback...)',
         warning,
       );
@@ -364,7 +369,10 @@ export function startWorkLoopTimer(nextUnitOfWork: Fiber | null): void {
   }
 }
 
-export function stopWorkLoopTimer(interruptedBy: Fiber | null): void {
+export function stopWorkLoopTimer(
+  interruptedBy: Fiber | null,
+  didCompleteRoot: boolean,
+): void {
   if (enableUserTimingAPI) {
     if (!supportsUserTiming) {
       return;
@@ -383,13 +391,12 @@ export function stopWorkLoopTimer(interruptedBy: Fiber | null): void {
       warning = 'There were cascading updates';
     }
     commitCountInCurrentWorkLoop = 0;
+    let label = didCompleteRoot
+      ? '(React Tree Reconciliation: Completed Root)'
+      : '(React Tree Reconciliation: Yielded)';
     // Pause any measurements until the next loop.
     pauseTimers();
-    endMark(
-      '(React Tree Reconciliation)',
-      '(React Tree Reconciliation)',
-      warning,
-    );
+    endMark(label, '(React Tree Reconciliation)', warning);
   }
 }
 
@@ -423,6 +430,31 @@ export function stopCommitTimer(): void {
     labelsInCurrentCommit.clear();
 
     endMark('(Committing Changes)', '(Committing Changes)', warning);
+  }
+}
+
+export function startCommitSnapshotEffectsTimer(): void {
+  if (enableUserTimingAPI) {
+    if (!supportsUserTiming) {
+      return;
+    }
+    effectCountInCurrentCommit = 0;
+    beginMark('(Committing Snapshot Effects)');
+  }
+}
+
+export function stopCommitSnapshotEffectsTimer(): void {
+  if (enableUserTimingAPI) {
+    if (!supportsUserTiming) {
+      return;
+    }
+    const count = effectCountInCurrentCommit;
+    effectCountInCurrentCommit = 0;
+    endMark(
+      `(Committing Snapshot Effects: ${count} Total)`,
+      '(Committing Snapshot Effects)',
+      null,
+    );
   }
 }
 

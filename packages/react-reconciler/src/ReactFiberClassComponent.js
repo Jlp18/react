@@ -370,7 +370,6 @@ export default function(
       if (
         typeof instance.getSnapshotBeforeUpdate === 'function' &&
         typeof instance.componentDidUpdate !== 'function' &&
-        typeof instance.componentDidUpdate !== 'function' &&
         !didWarnAboutGetSnapshotBeforeUpdateWithoutDidUpdate.has(type)
       ) {
         didWarnAboutGetSnapshotBeforeUpdateWithoutDidUpdate.add(type);
@@ -396,6 +395,14 @@ export default function(
         noInstanceGetDerivedStateFromCatch,
         '%s: getDerivedStateFromCatch() is defined as an instance method ' +
           'and will be ignored. Instead, declare it as a static method.',
+        name,
+      );
+      const noStaticGetSnapshotBeforeUpdate =
+        typeof type.getSnapshotBeforeUpdate !== 'function';
+      warning(
+        noStaticGetSnapshotBeforeUpdate,
+        '%s: getSnapshotBeforeUpdate() is defined as a static method ' +
+          'and will be ignored. Instead, declare it as an instance method.',
         name,
       );
       const state = instance.state;
@@ -831,6 +838,17 @@ export default function(
         newState === null || newState === undefined
           ? derivedStateFromProps
           : Object.assign({}, newState, derivedStateFromProps);
+
+      // Update the base state of the update queue.
+      // FIXME: This is getting ridiculous. Refactor plz!
+      const updateQueue = workInProgress.updateQueue;
+      if (updateQueue !== null) {
+        updateQueue.baseState = Object.assign(
+          {},
+          updateQueue.baseState,
+          derivedStateFromProps,
+        );
+      }
     }
     if (derivedStateFromCatch !== null && derivedStateFromCatch !== undefined) {
       // Render-phase updates (like this) should not be added to the update queue,
@@ -840,6 +858,17 @@ export default function(
         newState === null || newState === undefined
           ? derivedStateFromCatch
           : Object.assign({}, newState, derivedStateFromCatch);
+
+      // Update the base state of the update queue.
+      // FIXME: This is getting ridiculous. Refactor plz!
+      const updateQueue = workInProgress.updateQueue;
+      if (updateQueue !== null) {
+        updateQueue.baseState = Object.assign(
+          {},
+          updateQueue.baseState,
+          derivedStateFromCatch,
+        );
+      }
     }
 
     if (
@@ -1008,6 +1037,17 @@ export default function(
         newState === null || newState === undefined
           ? derivedStateFromProps
           : Object.assign({}, newState, derivedStateFromProps);
+
+      // Update the base state of the update queue.
+      // FIXME: This is getting ridiculous. Refactor plz!
+      const updateQueue = workInProgress.updateQueue;
+      if (updateQueue !== null) {
+        updateQueue.baseState = Object.assign(
+          {},
+          updateQueue.baseState,
+          derivedStateFromProps,
+        );
+      }
     }
     if (derivedStateFromCatch !== null && derivedStateFromCatch !== undefined) {
       // Render-phase updates (like this) should not be added to the update queue,
@@ -1017,6 +1057,17 @@ export default function(
         newState === null || newState === undefined
           ? derivedStateFromCatch
           : Object.assign({}, newState, derivedStateFromCatch);
+
+      // Update the base state of the update queue.
+      // FIXME: This is getting ridiculous. Refactor plz!
+      const updateQueue = workInProgress.updateQueue;
+      if (updateQueue !== null) {
+        updateQueue.baseState = Object.assign(
+          {},
+          updateQueue.baseState,
+          derivedStateFromCatch,
+        );
+      }
     }
 
     if (

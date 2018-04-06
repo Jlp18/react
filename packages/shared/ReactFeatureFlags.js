@@ -10,7 +10,6 @@
 import invariant from 'fbjs/lib/invariant';
 
 // Exports ReactDOM.createRoot
-export const enableCreateRoot = true;
 export const enableUserTimingAPI = __DEV__;
 
 // Mutating mode (React DOM, React ART, React Native):

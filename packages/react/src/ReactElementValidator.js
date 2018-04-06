@@ -14,16 +14,9 @@
 
 import lowPriorityWarning from 'shared/lowPriorityWarning';
 import describeComponentFrame from 'shared/describeComponentFrame';
+import isValidElementType from 'shared/isValidElementType';
 import getComponentName from 'shared/getComponentName';
-import {
-  getIteratorFn,
-  REACT_FRAGMENT_TYPE,
-  REACT_STRICT_MODE_TYPE,
-  REACT_ASYNC_MODE_TYPE,
-  REACT_PROVIDER_TYPE,
-  REACT_CONTEXT_TYPE,
-  REACT_FORWARD_REF_TYPE,
-} from 'shared/ReactSymbols';
+import {getIteratorFn, REACT_FRAGMENT_TYPE} from 'shared/ReactSymbols';
 import checkPropTypes from 'prop-types/checkPropTypes';
 import warning from 'fbjs/lib/warning';
 
@@ -36,8 +29,6 @@ let propTypesMisspellWarningShown;
 
 let getDisplayName = () => {};
 let getStackAddendum = () => {};
-
-let VALID_FRAGMENT_PROPS;
 
 if (__DEV__) {
   currentlyValidatingElement = null;
@@ -72,8 +63,6 @@ if (__DEV__) {
     stack += ReactDebugCurrentFrame.getStackAddendum() || '';
     return stack;
   };
-
-  VALID_FRAGMENT_PROPS = new Map([['children', true], ['key', true]]);
 }
 
 function getDeclarationErrorAddendum() {
@@ -264,7 +253,7 @@ function validateFragmentProps(fragment) {
   const keys = Object.keys(fragment.props);
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
-    if (!VALID_FRAGMENT_PROPS.has(key)) {
+    if (key !== 'children' && key !== 'key') {
       warning(
         false,
         'Invalid prop `%s` supplied to `React.Fragment`. ' +
@@ -288,18 +277,7 @@ function validateFragmentProps(fragment) {
 }
 
 export function createElementWithValidation(type, props, children) {
-  const validType =
-    typeof type === 'string' ||
-    typeof type === 'function' ||
-    // Note: its typeof might be other than 'symbol' or 'number' if it's a polyfill.
-    type === REACT_FRAGMENT_TYPE ||
-    type === REACT_ASYNC_MODE_TYPE ||
-    type === REACT_STRICT_MODE_TYPE ||
-    (typeof type === 'object' &&
-      type !== null &&
-      (type.$$typeof === REACT_PROVIDER_TYPE ||
-        type.$$typeof === REACT_CONTEXT_TYPE ||
-        type.$$typeof === REACT_FORWARD_REF_TYPE));
+  const validType = isValidElementType(type);
 
   // We warn in this case but don't throw. We expect the element creation to
   // succeed and there will likely be errors in render.

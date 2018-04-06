@@ -214,10 +214,10 @@ describe('ReactComponentLifeCycle', () => {
     expect(() => {
       ReactTestUtils.renderIntoDocument(<StatefulComponent />);
     }).toWarnDev(
-      'Warning: setState(...): Can only update a mounted or ' +
-        'mounting component. This usually means you called setState() on an ' +
-        'unmounted component. This is a no-op.\n\nPlease check the code for the ' +
-        'StatefulComponent component.',
+      "Warning: Can't call setState on a component that is not yet mounted. " +
+        'This is a no-op, but it might indicate a bug in your application. ' +
+        'Instead, assign to `this.state` directly or define a `state = {};` ' +
+        'class property with the desired state in the StatefulComponent component.',
     );
 
     // Check deduplication; (no extra warnings should be logged).
@@ -1148,6 +1148,45 @@ describe('ReactComponentLifeCycle', () => {
 
     ReactDOM.render(<div />, div);
     expect(log).toEqual([]);
+  });
+
+  it('should call getSnapshotBeforeUpdate before mutations are committed', () => {
+    const log = [];
+
+    class MyComponent extends React.Component {
+      divRef = React.createRef();
+      getSnapshotBeforeUpdate(prevProps, prevState) {
+        log.push('getSnapshotBeforeUpdate');
+        expect(this.divRef.current.textContent).toBe(
+          `value:${prevProps.value}`,
+        );
+        return 'foobar';
+      }
+      componentDidUpdate(prevProps, prevState, snapshot) {
+        log.push('componentDidUpdate');
+        expect(this.divRef.current.textContent).toBe(
+          `value:${this.props.value}`,
+        );
+        expect(snapshot).toBe('foobar');
+      }
+      render() {
+        log.push('render');
+        return <div ref={this.divRef}>{`value:${this.props.value}`}</div>;
+      }
+    }
+
+    const div = document.createElement('div');
+    ReactDOM.render(<MyComponent value="foo" />, div);
+    expect(log).toEqual(['render']);
+    log.length = 0;
+
+    ReactDOM.render(<MyComponent value="bar" />, div);
+    expect(log).toEqual([
+      'render',
+      'getSnapshotBeforeUpdate',
+      'componentDidUpdate',
+    ]);
+    log.length = 0;
   });
 
   it('should warn if getSnapshotBeforeUpdate returns undefined', () => {

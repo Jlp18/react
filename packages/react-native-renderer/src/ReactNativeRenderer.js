@@ -14,10 +14,11 @@ import './ReactNativeInjection';
 
 import * as ReactPortal from 'shared/ReactPortal';
 import * as ReactGenericBatching from 'events/ReactGenericBatching';
-import TouchHistoryMath from 'events/TouchHistoryMath';
 import ReactVersion from 'shared/ReactVersion';
 // Module provided by RN:
 import UIManager from 'UIManager';
+
+import {getStackAddendumByWorkInProgressFiber} from 'shared/ReactFiberComponentTreeHook';
 
 import NativeMethodsMixin from './NativeMethodsMixin';
 import ReactNativeBridgeEventPlugin from './ReactNativeBridgeEventPlugin';
@@ -34,6 +35,14 @@ import takeSnapshot from './takeSnapshot';
 injectFindHostInstance(ReactNativeFiberRenderer.findHostInstance);
 
 ReactGenericBatching.injection.injectRenderer(ReactNativeFiberRenderer);
+
+function computeComponentStackForErrorReporting(reactTag: number): string {
+  let fiber = ReactNativeComponentTree.getClosestInstanceFromNode(reactTag);
+  if (!fiber) {
+    return '';
+  }
+  return getStackAddendumByWorkInProgressFiber(fiber);
+}
 
 const roots = new Map();
 
@@ -96,9 +105,9 @@ const ReactNativeRenderer: ReactNativeType = {
     ReactNativeBridgeEventPlugin, // requireNativeComponent
     ReactNativeComponentTree, // ScrollResponder
     ReactNativePropRegistry, // flattenStyle, Stylesheet
-    TouchHistoryMath, // PanResponder
     createReactNativeComponentClass, // RCTText, RCTView, ReactNativeART
     takeSnapshot, // react-native-implementation
+    computeComponentStackForErrorReporting,
   },
 };
 

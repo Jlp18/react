@@ -868,7 +868,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     renderExpirationTime,
   ) {
     const providerType: ReactProviderType<any> = workInProgress.type;
-    const context: ReactContext<any> = providerType.context;
+    const context: ReactContext<any> = providerType._context;
 
     const newProps = workInProgress.pendingProps;
     const oldProps = workInProgress.memoizedProps;
@@ -994,10 +994,14 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
         changedBits,
         renderExpirationTime,
       );
-    } else if (oldProps !== null && oldProps.children === newProps.children) {
-      // No change. Bailout early if children are the same.
+    } else if (oldProps === newProps) {
+      // Skip over a memoized parent with a bitmask bailout even
+      // if we began working on it because of a deeper matching child.
       return bailoutOnAlreadyFinishedWork(current, workInProgress);
     }
+    // There is no bailout on `children` equality because we expect people
+    // to often pass a bound method as a child, but it may reference
+    // `this.state` or `this.props` (and thus needs to re-render on `setState`).
 
     const render = newProps.children;
 
