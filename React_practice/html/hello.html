@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Hello React!</title>
+		<!--
+        	 BootCDN 的 React CDN 库
+        -->
+
+		<script src="https://cdn.bootcss.com/react/15.4.2/react.min.js"></script>
+		<script src="https://cdn.bootcss.com/react/15.4.2/react-dom.min.js"></script>
+		<script src="https://cdn.bootcss.com/babel-standalone/6.22.1/babel.min.js"></script>
+	</head>
+	<body>
+		<div id="example1"></div>
+		<div id="example2"></div>
+		
+		
+		<script type="text/babel">
+			var LikeButton = React.createClass({
+				/*getDefaultProps: function(){
+					return {
+						name : 'Runoob'
+					};
+				},*/
+				getInitialState:function(){
+					return {liked: false};
+				},
+				handleClick : function(event){
+					this.setState({liked: !this.state.liked});
+				},
+				render : function(){
+					var text = this.state.liked?'喜欢':'不喜欢';
+					return(
+						<div>
+						<h1>Hello {this.props.name}</h1>
+						<p onClick = {this.handleClick}>
+						 你<b>{text}</b>我.点我切换状态.
+						</p>
+						</div>
+
+					);
+				}
+			});
+			
+			
+			var LinkButton = React.createClass({
+				getInitialState:function(){
+					return {redorblue: this.props.defaultColor};
+				},
+				handleClick: function(event){
+					/*state的值发生变化，自动调用this.render方法渲染*/
+					this.setState({redorblue : this.state.redorblue == 'red'?'blue':'red'});
+				},
+				render:function(){
+					var color = this.state.redorblue;
+					var style={
+						color : color
+					}
+					return(
+						<div>
+						<h3 style={style}>我是一个组件</h3>
+						<p onClick={this.handleClick}>点我切换颜色</p>
+						</div>
+					);
+				}
+			});
+			ReactDOM.render(
+				<LikeButton  name="Runoob" />,
+				document.getElementById('example1')
+			);
+			ReactDOM.render(
+				<LinkButton />,
+				document.getElementById('example2')
+			);
+		</script>
+	</body>
+</html>
